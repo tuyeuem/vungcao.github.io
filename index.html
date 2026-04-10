@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bữa Cơm Yêu Thương – Trẻ Em Vùng Cao</title>
+<style>
+  /* ── RESET & BASE ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #fef9f0;
+    color: #333;
+    line-height: 1.7;
+  }
+
+  /* ── SCROLL REVEAL ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── HEADER / HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #f97316 0%, #fb923c 50%, #fbbf24 100%);
+    padding: 4rem 2rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Decorative blobs */
+  .hero::before {
+    content: '';
+    position: absolute;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    top: -80px; right: -60px;
+    animation: blobFloat 6s ease-in-out infinite;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    bottom: -60px; left: -40px;
+    animation: blobFloat 8s ease-in-out infinite reverse;
+  }
+  @keyframes blobFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(20px, -20px) scale(1.05); }
+  }
+
+  /* Particle canvas sits over hero */
+  #pcanvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+  }
+
+  .hero-inner { position: relative; z-index: 2; }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.22);
+    color: #fff;
+    font-size: 13px;
+    padding: 5px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.35);
+    margin-bottom: 1.2rem;
+    animation: fadeDown 0.8s ease both;
+  }
+  .hero-icon {
+    font-size: 72px;
+    display: block;
+    margin-bottom: 0.8rem;
+    animation: bobFloat 3s ease-in-out infinite, fadeDown 0.6s ease both;
+    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.15));
+  }
+  @keyframes bobFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  .hero h1 {
+    font-size: clamp(24px, 4vw, 38px);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.3;
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    animation: fadeDown 1s ease 0.2s both;
+  }
+  .hero p {
+    font-size: 17px;
+    color: rgba(255,255,255,0.93);
+    max-width: 600px;
+    margin: 0 auto;
+    animation: fadeDown 1s ease 0.4s both;
+  }
+  /* Pulse ring behind icon */
+  .pulse-ring {
+    position: absolute;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.25);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -200%);
+    animation: pulseRing 2.5s ease-out infinite;
+    pointer-events: none;
+  }
+  @keyframes pulseRing {
+    0% { transform: translate(-50%, -200%) scale(0.7); opacity: 1; }
+    100% { transform: translate(-50%, -200%) scale(2.4); opacity: 0; }
+  }
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── MAIN CONTAINER ── */
+  .container { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* ── STATS ── */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 2.5rem auto;
+    max-width: 900px;
+    padding: 0 1.5rem;
+  }
+  .stat-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(249,115,22,0.1);
+    border: 1px solid #fed7aa;
+    transition: transform 0.25s, box-shadow 0.25s;
+    animation: fadeUp 0.6s ease both;
+  }
+  .stat-card:nth-child(1) { animation-delay: 0.1s; }
+  .stat-card:nth-child(2) { animation-delay: 0.25s; }
+  .stat-card:nth-child(3) { animation-delay: 0.4s; }
+  .stat-card:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(249,115,22,0.18); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  .stat-icon { font-size: 36px; margin-bottom: 10px; }
+  .stat-num { font-size: 28px; font-weight: 700; color: #f97316; margin-bottom: 6px; }
+  .stat-label { font-size: 13px; color: #888; line-height: 1.4; }
+
+  /* ── SECTION CARDS ── */
+  .section {
+    background: #fff;
+    border-radius: 20px;
+    padding: 2rem 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    border: 1px solid #fde8cc;
+  }
+  .section-tag {
+    display: inline-block;
+    background: linear-gradient(135deg, #fff7ed, #fef3c7);
+    color: #c2410c;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 14px;
+    border-radius: 999px;
+    margin-bottom: 0.9rem;
+    border: 1px solid #fed7aa;
+    letter-spacing: 0.04em;
+  }
+  .section h2 { font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 0.8rem; }
+  .section p { font-size: 15px; color: #555; line-height: 1.8; margin-bottom: 0.8rem; }
+  .section p:last-child { margin-bottom: 0; }
+
+  /* ── DONATE GRID ── */
+  .donate-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 1.2rem; }
+  .donate-card {
+    border-radius: 14px;
+    padding: 1.25rem;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: default;
+  }
+  .donate-card:hover { transform: scale(1.03); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+  .donate-card.orange { background: linear-gradient(135deg, #fff7ed, #fef3c7); border: 1px solid #fed7aa; }
+  .donate-card.green  { background: linear-gradient(135deg, #f0fdf4, #ecfdf5); border: 1px solid #bbf7d0; }
+  .donate-card-icon { font-size: 34px; margin-bottom: 10px; }
+  .donate-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; color: #1a1a1a; }
+  .donate-card p  { font-size: 13px; color: #666; line-height: 1.55; }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap { margin-top: 1.5rem; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 14px; color: #777; margin-bottom: 8px; font-weight: 500; }
+  .progress-bar { height: 14px; background: #fed7aa; border-radius: 999px; overflow: hidden; }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f97316, #fbbf24);
+    border-radius: 999px;
+    width: 0;
+    transition: width 2s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 20px; height: 100%;
+    background: rgba(255,255,255,0.4);
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+  @keyframes shimmer { 0%,100% { opacity: 0; } 50% { opacity: 1; } }
+  .progress-sub { font-size: 12px; color: #aaa; margin-top: 6px; }
+
+  /* ── CTA BUTTON ── */
+  .cta-btn {
+    display: block;
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 16px;
+    background: linear-gradient(135deg, #f97316, #fb923c);
+    color: #fff;
+    font-size: 17px;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 6px 20px rgba(249,115,22,0.35);
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.02em;
+  }
+  .cta-btn:hover  { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(249,115,22,0.45); }
+  .cta-btn:active { transform: scale(0.98); }
+  /* Ripple element */
+  .cta-btn .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.38);
+    transform: scale(0);
+    animation: rippleAnim 0.7s linear;
+    pointer-events: none;
+  }
+  @keyframes rippleAnim { to { transform: scale(5); opacity: 0; } }
+
+  /* ── QUIZ ── */
+  .quiz-intro { font-size: 14px; color: #888; margin-bottom: 1.5rem; line-height: 1.6; }
+  .q-block { margin-bottom: 1.75rem; }
+  .q-num  { font-size: 12px; font-weight: 600; color: #f97316; margin-bottom: 6px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .q-text { font-size: 16px; font-weight: 600; color: #1a1a1a; line-height: 1.5; margin-bottom: 12px; }
+  .answers { display: flex; flex-direction: column; gap: 9px; }
+  .ans-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #fafafa;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+    text-align: left;
+    width: 100%;
+    transition: border-color 0.15s, background 0.15s, transform 0.12s;
+    position: relative;
+    overflow: hidden;
+  }
+  .ans-btn:hover:not([disabled]) { border-color: #f97316; background: #fff7ed; transform: translateX(5px); }
+  .ans-btn .key {
+    min-width: 30px; height: 30px;
+    background: #fff;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600;
+    color: #777;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .ans-btn.correct { background: #f0fdf4; border-color: #4ade80; animation: correctPop 0.45s ease; }
+  .ans-btn.correct .key { background: #4ade80; color: #14532d; border-color: #4ade80; }
+  .ans-btn.wrong   { background: #fff1f2; border-color: #f87171; animation: wrongShake 0.5s ease; }
+  .ans-btn.wrong .key { background: #f87171; color: #7f1d1d; border-color: #f87171; }
+  .ans-btn[disabled] { cursor: default; }
+  @keyframes correctPop  { 0% { transform: scale(1); } 40% { transform: scale(1.04); } 100% { transform: scale(1); } }
+  @keyframes wrongShake  { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-7px); } 60% { transform: translateX(7px); } 80% { transform: translateX(-4px); } }
+
+  .feedback {
+    margin-top: 10px; padding: 10px 14px;
+    border-radius: 10px; font-size: 14px; line-height: 1.55;
+    display: none;
+    animation: fadeUp 0.3s ease;
+  }
+  .feedback.correct { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+  .feedback.wrong   { background: #fff1f2; color: #9f1239; border: 1px solid #fecdd3; }
+  .q-divider { border: none; border-top: 1px solid #f3f4f6; margin: 1.75rem 0; }
+
+  /* ── SCORE CARD ── */
+  .score-card {
+    background: linear-gradient(135deg, #fff7ed, #fef3c7);
+    border: 1px solid #fed7aa;
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    margin-top: 1.5rem;
+    display: none;
+    animation: fadeUp 0.5s ease;
+    box-shadow: 0 8px 32px rgba(249,115,22,0.12);
+  }
+  .score-card h3  { font-size: 20px; font-weight: 700; color: #92400e; margin-bottom: 10px; }
+  .score-card p   { font-size: 15px; color: #b45309; line-height: 1.65; }
+  .score-big      { font-size: 48px; font-weight: 700; color: #f97316; margin: 0.6rem 0; }
+
+  /* ── CONFETTI CONTAINER ── */
+  #confetti-layer {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 9998;
+    overflow: hidden;
+  }
+  @keyframes confettiFall {
+    0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+    100% { transform: translateY(200px) rotate(720deg) scale(0.5); opacity: 0; }
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    color: #e5e7eb;
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+    margin-top: 3rem;
+    border-radius: 24px 24px 0 0;
+  }
+  .footer-logo { font-size: 40px; margin-bottom: 10px; animation: bobFloat 4s ease-in-out infinite; display: block; }
+  .footer h3   { font-size: 20px; font-weight: 700; color: #fbbf24; margin-bottom: 8px; }
+  .footer p    { font-size: 14px; color: #9ca3af; line-height: 1.7; max-width: 500px; margin: 0 auto; }
+  .footer-links { display: flex; justify-content: center; gap: 20px; margin-top: 1.5rem; flex-wrap: wrap; }
+  .footer-links a { font-size: 14px; color: #fb923c; text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: #fbbf24; }
+  .footer-divider { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 1.5rem 0; }
+  .footer-copy { font-size: 12px; color: #6b7280; }
+
+  /* ── HEART TRAIL ── */
+  .heart-trail {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    font-size: 20px;
+    animation: heartFloat 1s ease forwards;
+  }
+  @keyframes heartFloat {
+    0%   { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-80px) scale(0.5); opacity: 0; }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .stats        { grid-template-columns: 1fr; }
+    .donate-grid  { grid-template-columns: 1fr; }
+    .hero h1      { font-size: 24px; }
+    .section      { padding: 1.5rem 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Confetti layer (fixed, full screen) -->
+<div id="confetti-layer"></div>
+
+<!-- ═══════════════════════════════════════════════ HERO ══ -->
+<header class="hero" id="hero-section">
+  <canvas id="pcanvas"></canvas>
+  <div class="pulse-ring"></div>
+  <div class="hero-inner">
+    <span class="hero-icon">🍚</span>
+    <div class="hero-badge">✨ Chương trình từ thiện 2025</div>
+    <h1>Bữa Cơm Yêu Thương<br>Cho Trẻ Em Vùng Cao</h1>
+    <p>Mỗi bữa cơm là một tia hi vọng — cùng chung tay mang hơi ấm đến những đứa trẻ vùng núi còn thiếu thốn trăm bề.</p>
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════════════ STATS ══ -->
+<div class="stats">
+  <div class="stat-card">
+    <div class="stat-icon">👶</div>
+    <div class="stat-num" data-target="2400">0</div>
+    <div class="stat-label">Trẻ em được hỗ trợ mỗi tháng</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🏔️</div>
+    <div class="stat-num" data-target="18">0</div>
+    <div class="stat-label">Bản làng vùng núi được tiếp cận</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">❤️</div>
+    <div class="stat-num" data-target="5600">0</div>
+    <div class="stat-label">Lượt tình nguyện viên đồng hành</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ INTRO ══ -->
+<div class="container">
+
+<div class="section reveal">
+  <div class="section-tag">🌿 Về chúng tôi</div>
+  <h2>Câu chuyện của những bữa cơm</h2>
+  <p>Ở những bản làng xa xôi trên dãy núi cao của Việt Nam — Hà Giang, Cao Bằng, Lai Châu, Điện Biên — hàng nghìn em nhỏ mỗi ngày đến trường với cái bụng rỗng. Đường đến trường đôi khi dài hàng giờ đồng hồ, vượt qua đèo dốc gập ghềnh giữa sương mù.</p>
+  <p>Chương trình <strong>Bữa Cơm Yêu Thương</strong> ra đời từ một niềm tin giản dị: <em>một bữa cơm no sẽ giúp một đứa trẻ học tốt hơn, vui hơn, và có nhiều cơ hội hơn trong cuộc đời.</em> Chúng tôi kết nối những tấm lòng hảo tâm với các điểm trường vùng cao để đảm bảo các em không phải lo đói khi đến lớp.</p>
+</div>
+
+<!-- ══════════════════════════════════════════ DONATE ══ -->
+<div class="section reveal">
+  <div class="section-tag">🤝 Cùng chung tay</div>
+  <h2>Bạn có thể làm gì để giúp đỡ?</h2>
+  <p>Dù ở bất kỳ đâu, bạn cũng có thể góp phần tạo nên sự thay đổi cho những em nhỏ vùng cao. Mỗi hành động nhỏ đều có ý nghĩa lớn lao.</p>
+  <div class="donate-grid">
+    <div class="donate-card orange">
+      <div class="donate-card-icon">💰</div>
+      <h3>Đóng góp tài chính</h3>
+      <p>Chỉ 50.000đ có thể mang lại một bữa ăn đủ chất cho một em nhỏ trong một tuần.</p>
+    </div>
+    <div class="donate-card green">
+      <div class="donate-card-icon">🤝</div>
+      <h3>Tình nguyện đồng hành</h3>
+      <p>Tham gia các chuyến đi thực tế, nấu ăn và trao quà trực tiếp tại các điểm bản.</p>
+    </div>
+  </div>
+
+  <!-- Animated Progress Bar -->
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>Mục tiêu gây quỹ tháng này</span>
+      <span id="pct-label">0%</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="prog-fill"></div>
+    </div>
+    <div class="progress-sub">73.500.000đ / 100.000.000đ đã đạt được</div>
+  </div>
+
+  <button class="cta-btn" id="donate-btn" onclick="handleDonate(this)">
+    ❤️ Tôi muốn đóng góp ngay hôm nay
+  </button>
+</div>
+
+<!-- ══════════════════════════════════════════ QUIZ ══ -->
+<div class="section reveal" id="quiz-section">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;">
+    <span style="font-size:28px;">📝</span>
+    <h2 style="margin:0;">Trắc nghiệm: Bạn hiểu gì về trẻ em vùng cao?</h2>
+  </div>
+  <p class="quiz-intro">Hãy thử sức với 7 câu hỏi nhỏ để hiểu thêm về cuộc sống, những khó khăn và điều kỳ diệu của trẻ em vùng núi Việt Nam. Chọn đáp án và lắng nghe phản hồi nhé!</p>
+  <div id="quiz-body"></div>
+  <div class="score-card" id="score-card">
+    <div style="font-size:40px;margin-bottom:8px;">🏅</div>
+    <h3>Bạn đã hoàn thành bài trắc nghiệm!</h3>
+    <div class="score-big" id="score-text"></div>
+    <p id="score-msg"></p>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<!-- ══════════════════════════════════════════ FOOTER ══ -->
+<footer class="footer">
+  <span class="footer-logo">🌄</span>
+  <h3>Bữa Cơm Yêu Thương</h3>
+  <p>Mang hơi ấm, san sẻ yêu thương đến tận bản làng vùng núi xa xôi.<br>Cùng nhau, chúng ta có thể thay đổi cuộc đời một đứa trẻ.</p>
+  <div class="footer-links">
+    <a href="#">Trang chủ</a>
+    <a href="#">Câu chuyện</a>
+    <a href="#">Đóng góp</a>
+    <a href="#">Tình nguyện</a>
+    <a href="#">Liên hệ</a>
+  </div>
+  <hr class="footer-divider">
+  <p class="footer-copy">© 2025 Bữa Cơm Yêu Thương · Với tất cả tình yêu thương dành cho các em nhỏ Việt Nam 🇻🇳</p>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// PARTICLE SYSTEM — floating emoji particles in hero
+// ═══════════════════════════════════════════════════════════
+const canvas = document.getElementById('pcanvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+const emojis = ['⭐','✨','💛','🌟','🟡','🍀','💫'];
+
+function resizeCanvas() {
+  const hero = document.getElementById('hero-section');
+  canvas.width  = hero.offsetWidth;
+  canvas.height = hero.offsetHeight;
+}
+
+function makeParticle() {
+  return {
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    size: Math.random() * 5 + 3,
+    alpha: Math.random() * 0.55 + 0.15,
+    vx: (Math.random() - 0.5) * 0.5,
+    vy: -Math.random() * 0.7 - 0.2,
+    emoji: emojis[Math.floor(Math.random() * emojis.length)]
+  };
+}
+
+function initParticles() {
+  resizeCanvas();
+  particles = Array.from({ length: 22 }, makeParticle);
+}
+
+function animateParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach((p, i) => {
+    ctx.save();
+    ctx.globalAlpha = p.alpha;
+    ctx.font = `${p.size * 3}px sans-serif`;
+    ctx.fillText(p.emoji, p.x, p.y);
+    ctx.restore();
+    p.x += p.vx;
+    p.y += p.vy;
+    p.alpha -= 0.0025;
+    if (p.alpha <= 0 || p.y < -30) particles[i] = makeParticle();
+  });
+  requestAnimationFrame(animateParticles);
+}
+
+initParticles();
+animateParticles();
+window.addEventListener('resize', initParticles);
+
+// ═══════════════════════════════════════════════════════════
+// HEART TRAIL — follows mouse cursor
+// ═══════════════════════════════════════════════════════════
+const hearts = ['❤️','🧡','💛','💚','💙','💜'];
+let lastHeart = 0;
+document.addEventListener('mousemove', (e) => {
+  if (Date.now() - lastHeart < 120) return;
+  lastHeart = Date.now();
+  const el = document.createElement('div');
+  el.className = 'heart-trail';
+  el.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+  el.style.left = e.clientX - 10 + 'px';
+  el.style.top  = e.clientY - 10 + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+});
+
+// ═══════════════════════════════════════════════════════════
+// ANIMATED COUNTER — counts up from 0 to target
+// ═══════════════════════════════════════════════════════════
+function animateCounter(el, target) {
+  const isSmall = target < 100;
+  const suffix  = isSmall ? '' : '+';
+  const duration = 2000;
+  let startTime = null;
+  function step(ts) {
+    if (!startTime) startTime = ts;
+    const progress = Math.min((ts - startTime) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    const val = Math.round(ease * target);
+    el.textContent = val.toLocaleString('vi-VN') + suffix;
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCROLL REVEAL — animate elements into view
+// ═══════════════════════════════════════════════════════════
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// Counter trigger on scroll
+let countersTriggered = false;
+const counterObserver = new IntersectionObserver((entries) => {
+  if (entries[0].isIntersecting && !countersTriggered) {
+    countersTriggered = true;
+    document.querySelectorAll('.stat-num[data-target]').forEach(el => {
+      animateCounter(el, parseInt(el.dataset.target));
+    });
+  }
+}, { threshold: 0.4 });
+const statsSection = document.querySelector('.stats');
+if (statsSection) counterObserver.observe(statsSection);
+
+// Progress bar trigger on scroll
+let progressTriggered = false;
+const progObserver = new IntersectionObserver((entries) => {
+  if (entries[0].isIntersecting && !progressTriggered) {
+    progressTriggered = true;
+    setTimeout(() => {
+      document.getElementById('prog-fill').style.width = '73.5%';
+      let pct = 0;
+      const iv = setInterval(() => {
+        pct = Math.min(pct + 1, 74);
+        document.getElementById('pct-label').textContent = pct + '%';
+        if (pct >= 74) clearInterval(iv);
+      }, 22);
+    }, 500);
+  }
+}, { threshold: 0.4 });
+const progWrap = document.querySelector('.progress-wrap');
+if (progWrap) progObserver.observe(progWrap);
+
+// ═══════════════════════════════════════════════════════════
+// RIPPLE + DONATE BUTTON
+// ═══════════════════════════════════════════════════════════
+function handleDonate(btn) {
+  // Create ripple
+  const ripple = document.createElement('span');
+  ripple.className = 'ripple';
+  const size = Math.max(btn.offsetWidth, btn.offsetHeight);
+  ripple.style.cssText = `width:${size}px;height:${size}px;left:${btn.offsetWidth/2 - size/2}px;top:${btn.offsetHeight/2 - size/2}px;`;
+  btn.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 800);
+
+  setTimeout(() => {
+    btn.textContent = '🙏 Cảm ơn tấm lòng của bạn! Chúng tôi sẽ liên hệ sớm nhé.';
+    btn.style.background = 'linear-gradient(135deg,#15803d,#16a34a)';
+    btn.style.boxShadow  = '0 6px 20px rgba(22,163,74,0.4)';
+    launchConfetti();
+  }, 350);
+}
+
+// ═══════════════════════════════════════════════════════════
+// CONFETTI BURST
+// ═══════════════════════════════════════════════════════════
+function launchConfetti() {
+  const layer = document.getElementById('confetti-layer');
+  const confItems = ['🎉','🌟','💛','❤️','🎊','✨','🌈','🍀','🎈'];
+  for (let i = 0; i < 40; i++) {
+    const el = document.createElement('div');
+    el.textContent = confItems[Math.floor(Math.random() * confItems.length)];
+    const sz = Math.random() * 16 + 14;
+    const delay = Math.random() * 0.6;
+    const dur   = 1.2 + Math.random() * 0.8;
+    el.style.cssText = `
+      position: absolute;
+      font-size: ${sz}px;
+      left: ${Math.random() * 100}%;
+      top: -40px;
+      pointer-events: none;
+      animation: confettiFall ${dur}s ease ${delay}s forwards;
+    `;
+    layer.appendChild(el);
+    setTimeout(() => el.remove(), (delay + dur) * 1000 + 200);
+  }
+  // Inject animation keyframe once
+  if (!document.getElementById('confetti-style')) {
+    const s = document.createElement('style');
+    s.id = 'confetti-style';
+    s.textContent = '@keyframes confettiFall{0%{transform:translateY(0) rotate(0deg) scale(1);opacity:1;}100%{transform:translateY(100vh) rotate(540deg) scale(0.4);opacity:0;}}';
+    document.head.appendChild(s);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// STAR BURST — appears on correct quiz answer
+// ═══════════════════════════════════════════════════════════
+function spawnStars(btn) {
+  const rect  = btn.getBoundingClientRect();
+  const emArr = ['⭐','✨','🌟','💛','🎊'];
+  for (let i = 0; i < 8; i++) {
+    const el   = document.createElement('div');
+    el.textContent = emArr[Math.floor(Math.random() * emArr.length)];
+    const size = Math.random() * 12 + 14;
+    el.style.cssText = `position:fixed;left:${rect.left + rect.width/2}px;top:${rect.top + rect.height/2}px;font-size:${size}px;pointer-events:none;z-index:9999;opacity:1;transition:transform 0.9s ease,opacity 0.9s ease;`;
+    document.body.appendChild(el);
+    const angle = (i / 8) * 360;
+    const dist  = Math.random() * 65 + 40;
+    const rad   = angle * Math.PI / 180;
+    setTimeout(() => {
+      el.style.transform = `translate(${Math.cos(rad)*dist}px, ${Math.sin(rad)*dist - 35}px)`;
+      el.style.opacity   = '0';
+    }, 30);
+    setTimeout(() => el.remove(), 1000);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// SOUND ENGINE — Web Audio API tones
+// ═══════════════════════════════════════════════════════════
+function playSound(type) {
+  try {
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (type === 'correct') {
+      // Ascending cheerful tones
+      [520, 660, 800, 960].forEach((freq, i) => {
+        const osc  = ac.createOscillator();
+        const gain = ac.createGain();
+        osc.connect(gain);
+        gain.connect(ac.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.22, ac.currentTime + i * 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + i * 0.1 + 0.4);
+        osc.start(ac.currentTime + i * 0.1);
+        osc.stop(ac.currentTime  + i * 0.1 + 0.4);
+      });
+    } else {
+      // Gentle descending tone
+      const osc  = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.frequency.setValueAtTime(380, ac.currentTime);
+      osc.frequency.linearRampToValueAtTime(240, ac.currentTime + 0.5);
+      osc.type = 'triangle';
+      gain.gain.setValueAtTime(0.18, ac.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.55);
+      osc.start(ac.currentTime);
+      osc.stop(ac.currentTime + 0.55);
+    }
+  } catch(e) { /* AudioContext may be unavailable */ }
+}
+
+// ═══════════════════════════════════════════════════════════
+// QUIZ DATA — 7 questions in Vietnamese
+// ═══════════════════════════════════════════════════════════
+const questions = [
+  {
+    q: "Tỷ lệ suy dinh dưỡng ở trẻ em các tỉnh miền núi phía Bắc Việt Nam cao hơn bao nhiêu so với mức trung bình cả nước?",
+    options: ["Tương đương nhau", "Cao hơn khoảng 2 lần", "Cao hơn khoảng 3–4 lần", "Thấp hơn mức trung bình"],
+    correct: 2,
+    ok:   "Đúng rồi! Tỷ lệ suy dinh dưỡng ở vùng núi cao hơn mức trung bình khoảng 3–4 lần — đây là lý do bữa ăn từ thiện rất quan trọng.",
+    fail: "Chưa đúng! Thực tế tỷ lệ suy dinh dưỡng ở vùng núi cao hơn mức trung bình khoảng 3–4 lần. Đây là con số đáng suy ngẫm!"
+  },
+  {
+    q: "Ở nhiều điểm trường vùng cao, trẻ em phải đi bộ bao lâu để đến trường mỗi ngày?",
+    options: ["10–15 phút", "30 phút đến 1 tiếng", "1–3 tiếng đồng hồ", "Chỉ vài bước chân"],
+    correct: 2,
+    ok:   "Chính xác! Nhiều em nhỏ phải đi bộ 1–3 tiếng đồng hồ mỗi chiều qua đèo dốc để đến được lớp học.",
+    fail: "Đáp án đúng là 1–3 tiếng đồng hồ. Những đôi chân nhỏ bé ấy đi thật xa để được học chữ!"
+  },
+  {
+    q: "Điều nào SAI về tác động của bữa ăn học đường đến trẻ em?",
+    options: ["Cải thiện khả năng tập trung trong lớp", "Giảm tỷ lệ bỏ học", "Làm trẻ ngủ nhiều hơn ở trường", "Cải thiện thành tích học tập"],
+    correct: 2,
+    ok:   "Đúng vậy! Bữa ăn đủ chất giúp trẻ tập trung tốt hơn và tỉnh táo — không phải ngủ nhiều hơn.",
+    fail: "Đáp án đúng là 'Làm trẻ ngủ nhiều hơn ở trường' — đó là điều SAI. Bữa ăn no thực ra giúp trẻ tỉnh táo hơn!"
+  },
+  {
+    q: "Những tỉnh nào ở Việt Nam có tỷ lệ trẻ em thiếu ăn cao nhất?",
+    options: ["TP.HCM, Hà Nội, Đà Nẵng", "Hà Giang, Lai Châu, Điện Biên, Cao Bằng", "Bình Dương, Đồng Nai, Long An", "Khánh Hòa, Bình Thuận, Ninh Thuận"],
+    correct: 1,
+    ok:   "Chính xác! Các tỉnh miền núi phía Bắc như Hà Giang, Lai Châu, Điện Biên là nơi trẻ em thiếu ăn nhiều nhất.",
+    fail: "Đáp án đúng là Hà Giang, Lai Châu, Điện Biên, Cao Bằng — những tỉnh miền núi phía Bắc xa xôi và còn nhiều khó khăn."
+  },
+  {
+    q: "Khi một đứa trẻ được ăn sáng đầy đủ trước khi vào lớp, điều gì xảy ra?",
+    options: ["Trẻ ít vận động hơn trong giờ ra chơi", "Trẻ có khả năng ghi nhớ và tiếp thu bài tốt hơn", "Trẻ thường hay nói chuyện và mất trật tự hơn", "Không có sự khác biệt nào đáng kể"],
+    correct: 1,
+    ok:   "Tuyệt vời! Dinh dưỡng đầy đủ giúp não bộ hoạt động tốt hơn, cải thiện trí nhớ và khả năng học tập đáng kể.",
+    fail: "Đáp án đúng: trẻ có khả năng ghi nhớ và tiếp thu bài tốt hơn. Bữa ăn tốt là nền tảng của việc học!"
+  },
+  {
+    q: "Hành động nào sau đây thể hiện tinh thần sẻ chia và lòng nhân ái đúng nhất?",
+    options: ["Chỉ giúp đỡ khi được yêu cầu chính thức", "Đợi người khác làm trước rồi mới làm theo", "Chủ động góp sức dù điều kiện còn khó khăn", "Giúp đỡ để được khen ngợi và nổi tiếng"],
+    correct: 2,
+    ok:   "Đúng rồi! Lòng nhân ái thật sự là khi ta chủ động hành động vì người khác, không cần ai yêu cầu hay khen ngợi.",
+    fail: "Đáp án đúng là 'Chủ động góp sức dù điều kiện còn khó khăn'. Lòng tốt không cần điều kiện hay lời khen!"
+  },
+  {
+    q: "Câu nói nào dưới đây phù hợp nhất với tinh thần của chương trình từ thiện này?",
+    options: ["Mỗi người chỉ cần lo cho bản thân mình", "Cho đi là mất đi", "Một miếng khi đói bằng một gói khi no", "Chỉ người giàu mới có thể giúp đỡ người khác"],
+    correct: 2,
+    ok:   "Chính xác! 'Một miếng khi đói bằng một gói khi no' — câu tục ngữ này nói lên ý nghĩa thiêng liêng của việc sẻ chia đúng lúc.",
+    fail: "Đáp án đúng là 'Một miếng khi đói bằng một gói khi no' — giá trị của sự sẻ chia đúng lúc, đúng nơi."
+  }
+];
+
+// ═══════════════════════════════════════════════════════════
+// QUIZ ENGINE
+// ═══════════════════════════════════════════════════════════
+let answered = new Array(questions.length).fill(false);
+let score    = 0;
+
+function renderQuiz() {
+  const body = document.getElementById('quiz-body');
+  body.innerHTML = '';
+  questions.forEach((q, qi) => {
+    const block = document.createElement('div');
+    block.className = 'q-block';
+    block.innerHTML = `
+      <div class="q-num">Câu ${qi + 1} / ${questions.length}</div>
+      <div class="q-text">${q.q}</div>
+      <div class="answers" id="answers-${qi}">
+        ${q.options.map((opt, oi) => `
+          <button class="ans-btn" onclick="checkAnswer(${qi}, ${oi})" id="btn-${qi}-${oi}">
+            <span class="key">${['A','B','C','D'][oi]}</span>
+            <span>${opt}</span>
+          </button>`).join('')}
+      </div>
+      <div class="feedback" id="feedback-${qi}"></div>
+      ${qi < questions.length - 1 ? '<hr class="q-divider">' : ''}
+    `;
+    body.appendChild(block);
+  });
+}
+
+function checkAnswer(qi, selected) {
+  if (answered[qi]) return;
+  answered[qi] = true;
+  const q = questions[qi];
+  const isCorrect = (selected === q.correct);
+  if (isCorrect) score++;
+
+  // Style all buttons
+  q.options.forEach((_, oi) => {
+    const btn = document.getElementById(`btn-${qi}-${oi}`);
+    btn.disabled = true;
+    if (oi === q.correct) btn.classList.add('correct');
+    else if (oi === selected && !isCorrect) btn.classList.add('wrong');
+  });
+
+  // Show feedback
+  const fb = document.getElementById(`feedback-${qi}`);
+  fb.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong');
+  fb.style.display = 'block';
+  fb.textContent = (isCorrect ? '✅ ' : '❌ ') + (isCorrect ? q.ok : q.fail);
+
+  // Sound + visual effects
+  playSound(isCorrect ? 'correct' : 'wrong');
+  if (isCorrect) spawnStars(document.getElementById(`btn-${qi}-${selected}`));
+
+  // Check completion
+  if (answered.every(Boolean)) setTimeout(showScore, 600);
+}
+
+function showScore() {
+  const card = document.getElementById('score-card');
+  card.style.display = 'block';
+  const pct = Math.round((score / questions.length) * 100);
+  document.getElementById('score-text').textContent = score + ' / ' + questions.length + ' câu đúng';
+  let msg = '';
+  if (pct === 100) msg = '🌟 Xuất sắc! Bạn hiểu rất rõ về cuộc sống trẻ em vùng cao. Hãy lan tỏa yêu thương này đến mọi người xung quanh nhé!';
+  else if (pct >= 70) msg = '💛 Rất tốt! Bạn có trái tim nhân ái và hiểu biết về những khó khăn của trẻ em vùng núi. Cùng chung tay hành động nào!';
+  else if (pct >= 40) msg = '💪 Không sao! Qua bài trắc nghiệm này bạn đã hiểu thêm nhiều điều. Hãy chia sẻ để nhiều người cùng biết nhé!';
+  else msg = '🌱 Cảm ơn bạn đã tham gia! Mỗi câu trả lời là một bước tìm hiểu thêm. Hãy đọc lại và cùng lan tỏa yêu thương!';
+  document.getElementById('score-msg').textContent = msg;
+  if (pct >= 70) launchConfetti();
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// Initialize quiz
+renderQuiz();
+</script>
+</body>
+</html>
